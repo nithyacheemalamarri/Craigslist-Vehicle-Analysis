@@ -1,0 +1,381 @@
+---
+title: "Milestone 4"
+date: today
+author:
+  - Nithya Cheemalamarri
+  - Mikayla Resendez
+  - Maddie Cicero
+  - Julie Jones
+format:
+  html:
+    toc: true
+    embed-resources: true
+mainfont: "Tex Gyre Schola"
+monofont: JetBrainsMono Nerd Font
+mathfont: Tex Gyre Schola Math
+
+---
+```{r,echo=FALSE, results='hide'}
+library(tidyverse)
+```
+
+```{r,echo=FALSE}
+load("/home/mm223266/data/vehiclesTiny.Rdata")
+```
+
+```{r,echo=FALSE}
+head(dfTiny)
+```
+```{r,echo=FALSE}
+library(dplyr)
+dfTiny <- dfTiny %>%
+  select(-id)
+dfTiny <- dfTiny %>%
+  select(-url)
+dfTiny <- dfTiny %>%
+  select(-region_url)
+dfTiny <- dfTiny %>%
+  select(-VIN)
+dfTiny <- dfTiny %>%
+  select(-image_url)
+dfTiny <- filter(dfTiny, price > 1000, price < 76000)
+```
+
+## Part 1: Numerical Description
+
+**Summary Statistics: Price**
+
+```{r,echo=FALSE}
+summary(dfTiny$price)
+```
+
+**Summary Statistics: Odometer**
+
+```{r,echo=FALSE}
+summary(dfTiny$odometer)
+```
+
+**Summary Statistics: Cylinders**
+
+```{r echo=FALSE}
+dfTiny$cylinders <- as.numeric(gsub(" cylinders", "", dfTiny$cylinders))
+summary(dfTiny$cylinders)
+```
+
+**Contingency Table: Manufacturer and Condition**
+
+```{r, results='asis', echo=FALSE}
+contingency_table <- table(dfTiny$condition, dfTiny$manufacturer)
+contingency_dfTiny <- as.data.frame.matrix(contingency_table)
+knitr::kable(t(contingency_dfTiny), caption = "Manufacturer and Condition")
+```
+
+**Contingency Table: Type and Fuel**
+
+```{r, results='asis', echo=FALSE}
+contingency_table <- table(dfTiny$type, dfTiny$fuel)
+contingency_dfTiny <- as.data.frame.matrix(contingency_table)
+knitr::kable(t(contingency_dfTiny), caption = "Type and Fuel")
+```
+**Table 1: States**
+
+```{r, echo=FALSE}
+library(pander)
+state_table <- table(dfTiny$state)
+pander(state_table)
+```
+
+**Table 2: Paint Color**
+
+```{r, echo=FALSE}
+paint_table <- table(dfTiny$paint_color)
+pander(paint_table)
+```
+
+**Table 3: Manufacturing Year**
+```{r, echo=FALSE}
+year_table <- table(dfTiny$year)
+pander(year_table)
+```
+      
+**Statistical Description**
+
+The initial vehiclesTiny dataset is a dataset that contains information about different vehicles being sold on the website CraigsList. This dataset was cleaned up to remove unessecary columns such as ID, URL, Region URL, VIN, Latitude, Longitude, and Description. A price filter was also applied to filter out cars that were under \$1000 and over \$76,000. This cleaned up data contains information about the region where the vehicle is being sold, the price of the vehicle, the year when the car was manufactured, the vehicle manufacturer, the vehicle model, the condition of the vehicle, the number of cylinders the vehicle has, the fuel type, the odometer reading, the the title status, the transmission type, the drive, the size of the vehicle, the type of the vehicle, and the paint color.
+
+Summary statistics were generated for the numerical data (price, cylinders, and odometers) to show the first quartile, minimum value, mean, maximum value, and third quartile. 
+
+The average price of a car being sold is \$19,073. The least expensive car listed, after filtering out data that is less than \$1000, is \$1050. The most expensive car listed, after filtering out data that is greater than \$76,000 is \$75,995. From this information, it can be concluded that the range of the prices of the cars listed is 74,945. 25% of all car prices are under \$7995, and 75% of all car prices are over \$27,900, thus, the interquartile range is 19,905.
+
+The average odometer reading for the cars being sold is 96,065 miles. The least number of miles a car has is 0 miles. The most miles a car has is 1,500,000 miles. The range for the cars' odometer readings is 1,500,000. 25% of the odometer readings are under 39,649 miles, and 75% of the odometer readings are over 136,666 miles, so from this, we can see that the interquartile range is 97,017.
+
+The average number of cylinders that a car being sold has is 5.981 cylinders. The least number of cylinders that a car being sold has is 3.00 cylinders. The most number of cylinders that a car being sold has is 12.00 cylinders, so the range is 9.00. 25% of the amount of the cars' cylinders is below 4.00 cylinders, and 75% of the amount of the cars' cylinders is above 8.00 cylinders, making the interquartile range 8.00.
+
+The first contingency table shows the various conditions of the different car companies. As seen from this table, most of the car companies of the cars being sold are either in excellent, fair, or good condition. There are also a handful of cars that are in like new condition; however, there are very few cars that are of new or salvage condition. From the table, it can be observed that almost all luxury car brands are of good condition.
+
+The second contingency table shows the various types of vehicles that are being sold and the different fuel categories of these vehicles. As seen from this table, a majority from each vehicle category run on gas. Out of all the vehicle categories, the vehicle category with the most hybrid vehicles is hatchback, with 27 hatchbacks with the hybrid fuel type.
+
+Table 1 gives a sum of the total number of cars listed from each state. Based on the table above the amount of cars listed differ throughout each state. In North Dakota only 8 cars were listed being the smallest amount of cars listed. The state with the largest amount of vehicles listed is in California with 1035 cars. 
+
+Table 2 consists of information based on the different colors of cars and the amount of cars that were listed within each color. As shown in the table, the amount of the more neutral, commonly seen car colors (black, blue, grey, red, silver, white) in comparison to the brighter, less commonly seen car colors (brown, custom, green, orange, purple, yellow) show a higher amount of cars listed. Purple is the most unpopular color with only 16 purple cars listed and white being the most listed color of car at a total of 1614 cars.
+
+Table 3 shows the information of how the manufacturing years of the vehicles were listed. The information states that in only 1 car listed was manufactured in 1923. As time passes you can see the slow and gradual (with fluctuations) increase of cars throughout the years. The highest number of cars manufactured was 728 cars in 2017. 
+
+## Part 2: Visual Description
+
+__Violin Plot: Drive vs. Price__
+
+```{r, echo=FALSE}
+library(ggplot2)
+library(dplyr)
+dfFiltered <- dfTiny %>% filter(price <= 76000, drive != 'NA')
+ggplot(dfFiltered, aes(x = drive, y = price, fill = drive)) +
+  geom_violin() +
+  labs(title = "Distribution of Prices by Drive Type", x = "Drive", y = "Price") +
+  theme_minimal()
+```
+This violin plot shows the distributions of prices for each drive type (4wd, fwd, and rwd) after filtering out prices over (\$)76,000. For the 4wd drive category, we can see that the plot widens at around (\$)10,000, meaning that most of the 4wd cars that are listed are being sold for about (\$)10,000. We can also see that most of the cars are (\$)40,000 or less, as the plot starts to narrow down after (\$)40,000. For the fwd drive category, the plot is the widest at around (\$)5,000, demonstrating that most of the fwd vehicles listed are selling for around (\$)5,000. The plot starts to narrow down after (\$)30,000. We can see from our analysis for the 4wd and fwd categories so far that fwd vehicles tend to be cheaper than 4wd vehicles. Finally, in the rwd category, we can see that most of the cars, similar to fwd, are also around (\$)10,000. However, as opposed to fwd, there is a greater distribution of cars past (\$)30,000, and the plot starts to narrow down after the (\$)40,000 price point. It seems to be that both 4wd and rwd vehicles tend to be listed at higher prices than fwd vehicles, as for fwd vehicles, the distributions of prices are highly saturated under (\$)20,000.
+
+__Scatterplot: Year vs. Odometer__
+
+```{r, echo=FALSE}
+library(ggplot2)
+library(dplyr)
+dfFiltered <- dfTiny %>% filter(odometer <= 250000)
+library(ggplot2)
+ggplot(dfFiltered, aes(x = year, y = odometer)) +
+  geom_point() +
+  labs(title = "Year vs. Odometer", x = "Year", y = "Odometer") +
+  theme_minimal()
+```
+This scatterplot shows the odometer readings for the various years the cars were manufactured in. Odometer readings of over 250,000 were filtered out. Before making this plot, we predicted that there would be somewhat of a correlation, as typically, the older a car is, the more miles it has. However, as seen in this scatterplot, there isn't a clear correlation between year and odometer reading. There are several outliers for some of the years at 250,000 miles. As we get closer to 2000, the density of points increases, showing that there are more cars that have been manufactured close to 2000 and over.
+
+__Boxplot: Size vs. Odometer__
+```{r, echo=FALSE}
+library(dplyr)
+dfNew <- dfTiny %>% filter(odometer <= 250000, size != 'NA')
+f <- ggplot(dfNew, aes(x = size, y = odometer)) +
+       geom_boxplot()
+print(f)
+```
+This graph shows boxplots for the odometer readings for each of the different car size categories. The odometer readings have been filtered to exclude readings over 250,000 miles. From this analysis, some patterns have emerged. First, the values for the compact category and sub-compact category appear to be somewhat similar, while the values for the full-size and mid-size category appear to be similar. Futhermore, for compact and sub-compact tend to be less than those of the full-size and mid-size categories, suggesting that compact and sub-compact cars are not often driven for long distances.
+
+__Bar Chart: Size vs. Cylinders__
+```{r, echo=FALSE}
+library(ggplot2)
+library(dplyr)
+
+dfFiltered <- dfTiny %>% filter(size != "N/A", cylinders != "N/A")
+
+ggplot(dfFiltered, aes(x = size, fill = as.factor(cylinders))) +
+  geom_bar(position = "dodge", stat = "count") +
+  labs(title = "Number of Cylinders by Size", x = "Size", y = "Count") +
+  theme_minimal()
+```
+This bar chart shows the number of cylinders each size category has. For the compact category, the most common amount of cylinders is 4 cylinders, followed by 6 cylinders. For the full-size category, the most common amount of cylinders is 8 cylinders, followed by 6 cylinders. For the mid-size category, the most common amount of cylinders is 4 cylinders, followed by 6 cylinders. Lastly, for the sub-compact category, the most common amount of cylinders is 4 cylinders, followed by 6 cylinders. From this, we can see that 6 cylinders appears to be very frequent amongst all of the car categories, coming as the 2nd most common number for each vehicle size.
+
+__Bar Chart: Condition vs. Price__
+```{r, echo=FALSE}
+library(dplyr)
+dfFiltered <- dfTiny %>% filter(condition != "N/A")
+ggplot(dfFiltered, aes(x = condition, y = price)) +
+  geom_bar(stat = "identity", fill = "blue") +
+  labs(title = "Price by Condition", x = "Condition", y = "Price")
+```
+This bar chart shows the various conditions of the cars being listed and the prices for each of the categories, after filtering out prices over 76,000. As per the graph, we can see that the "good" condition has the highest prices, with the "excellent" condition having the next highest prices. These values could also be influenced by the fact that there are more "good" cars being listed than "excellent" cars.
+
+__Boxplot: Size vs. Price__
+```{r, echo=FALSE}
+library(ggplot2)
+dfFiltered <- dfTiny %>% filter(price < 76000, size != 'NA')
+ggplot(dfFiltered, aes(x = size, y = price)) +
+       geom_boxplot()+
+        labs(title = "Boxplot of Size vs. Price", x = "Size", y = "Price")
+```
+This graph shows boxplots for the prices for each of the different car size categories. The prices have been filtered to exclude car prices over 76,000. As seen from this graph, all of the car categories seen to have the same first quartile, and all of their minimum prices are 0. The third quartile values for the mid-size and sub-compact categories appear to be similar as wel. We can see that the median price of cars in the compact category are less than the median prices of the full-size, mid-size, and sub-compact categories. The full-size category has the highest maximum value, with mid-size following after, suggesting that the price increases as the vehicle size increases.
+
+__Bar Chart: Fuel Type vs. Price__
+
+```{r, echo=FALSE}
+fuel_price <- dfTiny %>%
+  filter(!is.na(fuel)) %>%
+  group_by(fuel) %>%
+  summarize(avg_price = mean(price))
+
+ggplot(fuel_price, aes(x = fuel, y = avg_price)) +
+  geom_bar(stat = "identity", fill = "blue") +
+  labs(title = "Fuel Type vs. Price",
+       x = "Fuel Type",
+       y = "Price") +
+  theme_minimal()
+```
+This bar chart displays the average price of vehicles categorized by their fuel type. Cars in the "other" category have the highest average price, followed by diesel and electric cars. Hybrid gas cars have the lowest average price.
+
+__Bar Chart: Manufacturer vs. Number of Listings__
+
+```{r, echo=FALSE}
+manufacturer_counts <- dfTiny %>%
+  filter(!is.na(manufacturer)) %>%
+  group_by(manufacturer) %>%
+  summarize(listing_count = n())
+
+ggplot(manufacturer_counts, aes(x = reorder(manufacturer, -listing_count), y = listing_count)) +
+  geom_bar(stat = "identity", fill = "green") +
+  labs(title = "Manufacturer vs. Number of Listings",
+       x = "Manufacturer",
+       y = "Number of Listings") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# Description: This bar chart illustrates the number of vehicle listings for each manufacturer. Ford has the highest number of listings, while Harley-Davidson has the least.
+```
+This bar chart illustrates the number of vehicle listings for each manufacturer. Ford has the highest number of listings, while Harley-Davidson has the least. It can be seen that the more commonly seen vehicle brands (ford, chevrolet, toyota, honda) have the most listings.
+
+__Bar Chart: Car Color and Size__
+```{r,echo=FALSE}
+library(ggplot2)
+
+dfFiltered <- dfTiny %>% 
+  filter(!is.na(paint_color)) %>%
+  filter(!is.na(size))
+
+counts <- dfFiltered %>%
+  group_by(paint_color, size) %>%
+  summarize(count = n())
+
+counts <- counts %>%
+  mutate(paint_color = reorder(paint_color, -count))
+
+ggplot(counts, aes(x = paint_color, y = count, fill = size)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Car Color and Size Distribution", x = "Color", y = "Count") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+This graph shows the comparison between the size and color distribution of the different sizes of the cars listed. It seems as though white is the most popular color, with full-size cars being the most popular within this color.
+
+## Regression Analysis
+
+__Linear Model 1: Trial 1__
+
+```{r,echo=FALSE}
+model1<- lm(price ~ manufacturer +year +condition , data=dfTiny)
+summary(model1)
+```
+This linear regression model has been applied to predict price based on three predictor variables: manufacturer, year, and condition. vehicles from manufacturers like Audi, Cadillac, and Jaguar tend to have higher prices compared to this baseline. Conversely, manufacturers like Chrysler, Dodge, Hyundai, and Kia tend to have lower prices. The year variable shows that, on average, a one-year increase in the vehicle's age is associated with an increase in price of about $457.68. The condition variable demonstrates that vehicles in "good," "like new," and "new" conditions tend to have higher prices compared to vehicles in "fair" condition. The model's adjusted R-squared value of 0.3 indicates that approximately 30% of the variability in prices can be explained by the combination of these predictor variables. The residual standard error of 10,550 suggests that the model's predictions may deviate from the actual prices by this amount, on average. The overall F-statistic is highly significant (p-value < 0.00000000000000022), indicating that the model as a whole is statistically significant in predicting prices. 
+
+__Linear Model 1: Trial 2__
+
+```{r,echo=FALSE}
+model2<- lm(price ~ year +transmission +condition +size + drive +odometer +fuel, data=dfTiny)
+summary(model2)
+```
+This demonstrates a multiple linear regression model predicting price based on several predictor variables including year, transmission, condition, size, drive, odometer, and fuel. The coefficients for different transmission types suggest that the type of transmission has limited impact on the price, as the p-values for both manual and other transmissions are not statistically significant. Regarding condition, compared to a car in poor condition, those in fair condition are estimated to have a lower price by approximately 6,730.42 dollars, while cars in good, like new, and new conditions tend to have higher prices by approximately 2,247.98, 1,946.98, and 8,677.65 dollars, respectively. Cars in salvage condition have an estimated lower price by approximately $10,004.81. The size of the vehicle also affects the price, with full-size cars having a higher estimated price compared to sub-compact cars. The drive type significantly impacts the price; front-wheel drive (fwd) is associated with a lower price by approximately $7,039.81 compared to all-wheel drive (awd). The odometer coefficient of approximately -0.042 indicates that for every additional mile, the price tends to decrease by 0.042 dollars. The fuel type also plays a substantial role, with gas and hybrid vehicles having lower estimated prices by approximately 13,244.17 and 12,995.17 dollars, respectively, compared to electric vehicles. The adjusted R-squared value of 0.4393 suggests that the model explains about 43.93% of the variance in the price variable. The overall F-statistic of 87.71 with an extremely low p-value indicates that the model as a whole is statistically significant in predicting price. 
+
+Compared to the first trial, the Adjusted R-squared value is higher. This suggests that the second trial may be a better model.
+
+__Linear Model 2: Trial 1__
+
+```{r,echo=FALSE}
+model3 <- lm(price ~ year + drive + manufacturer,
+data = dfTiny)
+summary (model3)
+```
+This linear regression model aims to predict the price of a car based on the variables year, drive, and manufacturer. The coefficients represent the estimated impact of each variable on the price. For instance, a one-unit increase in the year of the car is associated with an average increase of 549.73 units in price. The "drive" variable indicates that front-wheel drive (fwd) is associated with an average decrease of 7594.82 units in price compared to an unspecified reference category, while rear-wheel drive (rwd) is associated with an increase of 1865.65 units, although this effect is not statistically significant. The "manufacturer" variable includes various categories, each with its own impact on price. For example, cars manufactured by Audi are associated with an average increase in price of 1666.16 units compared to the reference category. The overall model is statistically significant (F = 58.4, p < 0.00000000000000022), indicating that at least one of the predictors has a non-zero effect on price. The multiple R-squared value of 0.2633 suggests that approximately 26.33% of the variability in price can be explained by the combination of year, drive, and manufacturer. 
+
+__Linear Model 2: Trial 2__
+
+```{r,echo=FALSE}
+model4 <- lm(price ~ paint_color + fuel + manufacturer + year + condition + drive + size,
+data = dfTiny)
+summary (model4)
+```
+This model attempts to predict the price of a product based on various independent variables such as paint color, fuel type, manufacturer, year, and condition. The coefficients indicate the estimated change in price associated with each level of the categorical variables compared to a reference level. For example, paint_color "blue" has a coefficient of -1246.90, implying that, on average, vehicles with a blue paint color have a price that is approximately $1246.90 lower than the reference category. The Adjusted R-squared value of 0.3106 suggests that approximately 31.06% of the variability in price can be explained by the linear model. The low p-value (< 0.00000000000000022) for the F-statistic indicates that the model is statistically significant, implying that at least one of the independent variables is influential in predicting the response variable. 
+
+Compared to the first trial, this trial has a better Adjusted R-squared value, suggesting that this trial may be the better linear model.
+
+__Machine Learning Model__
+```{r,echo=FALSE}
+dfB <- dfTiny |> select(price, year, model, odometer)
+#dfTiny <- dfB
+str(dfB)
+```
+```{r,echo=FALSE}
+summary(dfB$price,echo=FALSE)
+options(scipen = 999)
+quantile(dfB$price)
+quantile(dfB$price, probs = 0.9)
+quantile(dfB$price, probs = 0.95)
+quantile(dfB$price, probs = 0.99)
+dfB <- dfB %>%
+  filter(price > 0 & price < quantile(dfB$price, probs = 0.99))
+
+summary(dfB$price)
+ggplot(dfB, aes(price)) + geom_boxplot()
+```
+```{r,echo=FALSE}
+dfB <- dfB %>%
+  drop_na()
+
+dim(dfB)
+```
+```{r,echo=FALSE}
+library(olsrr)
+
+lm_model <- lm(price ~ ., data = dfB)
+best_subset <- ols_step_best_subset(lm_model)
+best_subset
+plot(best_subset)
+
+summary(lm_model)
+```
+This model employs a Best Subsets Regression approach to explore various combinations of predictors for estimating the vehicle price. The table displays different models with an increasing number of predictors. For instance, Model 1 considers only the 'model' variable, while Model 3 involves a combination of 'year,' 'model,' and 'odometer,' variables. The evaluation metrics provide insights into the models' performance. Notably, the R-squared values indicate the proportion of variation in price that can be explained by the model. In the case of Model 3, the Adjusted R-squared reaches 0.7741, suggesting a good fit. The variables for this model were selected based on the previous linear model. We noticed that adding the 'model' variable contributes to the drastic increase of the R-squared value as well as the Adjusted R-squared value, which may suggest that it is misleading due to its high number of values, some of which may be typos or irrelevant data.
+
+__Manual Model__
+
+```{r,echo=FALSE}
+manual_model <- lm(price ~  year + odometer + condition + type + drive, data = dfTiny)
+summary(manual_model)
+```
+Compared to the Machine Learning model and the previous linear regression models generated, we tried to use minimal variables to gain a Multiple R-Squared value above 40%. As we learned from the Machine Learning Model as well as previous models, the variables `manufacturer` and `model` had lots of values that inaccurately inflated the Multiple R-Squared and Adjusted R-Squared values. So, when constructing the final model, we  decided to omit these variables. Additionally, based on our previous graphs, we saw that `year,` `odometer,` `condition,` `type,` and `drive` all had an impact on the price of a vehicle listed.
+
+__Summary__
+
+To aid in choosing the variables for the models, we analyzed the visualizations from Milestone 2 that compared a variable vs. its effect or relationship with the price of the vehicles. As seen from the violin plot for Drive vs. Price, it can be clearly seen that the drive of the vehicle affects the price. For example, based on the density in each of the plots, vehicles in the 4wd and rwd categories are of similar prices and are higher than the prices of vehicles in the fwd category. Due to this pattern, we decided to include drive as a variable in one of our linear models. Similar to this, we also noticed a relationship between the size of the vehicle and the price of the vehicle, as demonstrated by the boxplots in Milestone 2. For example, median price of cars in the compact category are less than the median prices of the full-size, mid-size, and sub-compact categories. The full-size category has the highest maximum value, with mid-size following after, suggesting that the price increases as the vehicle size increases. This made it reasonable to include size as a variable in one of our linear models as well. Additionally, the Condition vs. Price bar graph shows a possible relationship between the condition and the listing price of the car. The better condition cars have higher prices, thus, it would be safe to assume that this is a decent variable to include in the model. Finally, the last visualization that helped in picking variables was the Price vs. Year labeled scatter plot. As the years increased, there was a higher density as the price increased as well. So we decided that year was one of the main influencing variables.
+
+In trial 1 of Linear Model 1, the adjusted R-squared value was fairly low since we omitted some of the variables we saw in the visualizations. After adding variables such as size, drive, odometer, and fuel into the model in trial 2, the adjusted R-squared value increased, showing how these variables have more of an impact on the price.
+
+In trial 1 of Linear Model 2, we decided to omit condition because we noticed that in the visualization, the prices of the "good" condition were higher than those of the "excellent" condition, which suggested that this may be influenced by the amount of cars in each category. We replaced this with drive, which yielded a better, but still low value compared to trial 1 of Linear Model 1. We included factors like paint_color and the vehicle condition in trial 2 because these variables show true correspondence between one another and the numbers compared to stats on manufacturing or even year for the vehicles. It seems as though adding paint color helped increase the adjusted r-squared value of the model, as trial 2 yielded a higher value.
+
+In the Machine Learning Model, we included the variables that we believed would have a significant impact compared to the rest of the variables in a subset. These variables were selected based on linear model 2, trial 2, in particular due to its high adjusted R-squared and multiple R-squared values, in addition to the graphs made in the previous milestone. Using this approach, the optimal combination of variables is displayed. Based on the results of the Machine Learning Model, we decided to omit inaccurate variables such as manufacturer and model to see if the model would be better. We also added variables from previous models, ultimately resulting in a higher Multiple R-squared value without having too many variables.
+
+## Regression Diagnostics
+
+__Diagnostic Plots__
+
+```{r,echo=FALSE}
+plot(manual_model)
+```
+
+The first diagnostic plot is a Residuals vs. Fitted plot which is used to assess the goodness-of-fit of a linear regression model. It helps to identify patterns or trends in the residuals, which are the differences between the observed and predicted values. This plot was generated based on the model that used the variables year, odometer, condition, and type to predict the dependent variable 'price' in the dataset. As seen in this plot, most of the residuals are clumped from the fitted values of -10000 to 30000 and are funneling outwards, showing a discernible pattern in the data. This concentration of residuals within a specific range may suggest that the linear relationship between the predictors (year, odometer, condition, and type) and the dependent variable 'price' might not be fully captured. Additionally, there are significant outliers present in the model, represented by the points such as 613, 9141, and 3263. These outliers could be having an impact on the overall model. In this plot, the residuals are also not spread evenly across all levels of the fitted values, suggesting heteroscedasticity. 
+
+The second plot, a Q-Q plot, is a Standardized residuals vs Theoretical Quantiles diagnostic plot. In the Q-Q plot, the x-axis represents the theoretical quantiles from a standard normal distribution. The y-axis represents the standardized residuals, which are the residuals scaled by their standard deviation. This plot was generated based on the model that used the variables year, odometer, condition, and type to predict the dependent variable 'price' in the dataset. Overall, we can see that the residuals slightly follow the line, but start to curve upwards. Since the residuals do not exactly fall on or follow the line in the plot, this suggests that there is not a normal distribution. rather, there may be a slight right skew due to the residuals being upturned towards the theoretical quantile of 2.
+
+The third diagnostic plot is a Scale-Location plot which is used to assess whether residuals are spread equally along the ranges of input variables. By doing this, it helps diagnose heteroscedasticity. This plot was generated based on the model that used the variables year, odometer, condition, and type to predict the dependent variable 'price' in the dataset. As seen in this plot, most of the residuals are clumped from the fitted values of 0 to 30000, showing a discernible pattern in the data. This concentration of residuals within a specific range may suggest that the linear relationship between the predictors (year, odometer, condition, and type) and the dependent variable 'price' might not be fully captured. Overall, the red line is not approximately horizontal, indicating that there is some variability in the standardized residuals. Furthermore, the spread of the points around the red line shows a pattern, also suggesting heteroscedasticity.
+
+The last diagnostic plot is a Residuals vs Leverage plot that reflects influential points to help us remove unwanted diagnostics. The plot has been generated based on the variables year, odometer, condition, type, and drive in determination to solve for price. The residuals show the difference between the observed and predicted values that results in standardized deviation. The leverage shows ideals between the coefficients. High leverage points are also observed with the extreme values on its predictors, within this specific diagnostic plot it shows an influential point having a higher leverage that strongly affects the standardized residuals. Some influential points that may have to be removed are 3750, 5141, and 3263.
+
+```{r,echo=FALSE}
+with(dfTiny,summary(lm(price ~  year + odometer + condition + type + drive)))
+```
+The Multiple R-squared value (0.487) represents the proportion of the variance in the dependent variable (price) that is explained by the independent variables (year, odometer, condition, type, drive). In this case, approximately 48.7% of the variability in price is accounted for by the model. The Adjusted R-squared value (0.4842) is a modified version of the R-squared that adjusts for the number of predictors in the model. It penalizes the inclusion of unnecessary variables. The adjusted R-squared is slightly lower than the multiple R-squared in this case. The F-statistic (170.5) is a measure of the overall significance of the model. It assesses whether at least one predictor variable has a non-zero coefficient in the population. A higher F-statistic suggests that the model is statistically significant. The p-value associated with the F-statistic is less than 0.00000000000000022. This very small p-value provides evidence against the null hypothesis that all the regression coefficients are zero. In other words, it suggests that the overall model is statistically significant.
+
+__Breusch-Pagan Test__
+
+```{r,echo=FALSE}
+library(lmtest)
+bptest(manual_model)
+```
+
+The studentized Breusch-Pagan test was conducted on the linear regression model (manual_model) to assess the presence of heteroscedasticity. The test yielded a test statistic (BP) of 278.04 with 21 degrees of freedom, resulting in an extremely small p-value of less than 0.00000000000000022. This exceptionally low p-value provides strong evidence against the null hypothesis of homoscedasticity, indicating that the variance of the residuals is not constant across all levels of the independent variables. In practical terms, this implies that the spread of errors in the model significantly varies, violating the assumption of homoscedasticity. 
+
+__Conclusion__
+
+The initial VehiclesTiny dataset, derived from Craigslist listings, underwent a meticulous cleaning process, omitting irrelevant columns and applying price filters. Statistical analysis revealed intriguing patterns and insights into the characteristics of the listed vehicles. The dataset spans a diverse range of regions, manufacturers, models, conditions, fuel types, and other features. Notably, the average car price is $19,073, with a substantial price range from $1,050 to $75,995. The average odometer reading is 96,065 miles, indicating a varied history of vehicle usage. Categorically, most cars are in excellent, fair, or good condition, with luxury brands predominantly falling into the good category. Gasoline remains the primary fuel type across vehicle categories, and a detailed contingency table showcases this distribution. Geographically, California lists the highest number of vehicles (1,035), while North Dakota lists the fewest (8). The dataset's color distribution highlights a prevalence of neutral colors like black, blue, grey, red, silver, and white, with white being the most listed color (1,614 cars). Over the years, car listings have gradually increased, peaking at 728 cars in 2017. Visualizations, including violin plots, scatterplots, and boxplots, shed light on relationships between variables like drive type, year, odometer readings, car size, and their impact on prices. Linear models were developed to predict prices based on various features, and diagnostic plots were employed to assess model validity, revealing potential issues such as heteroscedasticity and influential points. The dataset analysis incorporated the development of linear models to elucidate the relationships between key variables and vehicle prices. Two primary linear models were explored. In the first model, factors such as year, odometer readings, condition, and vehicle type were utilized to predict prices. The initial adjusted R-squared value was relatively low, indicating a need for additional variables. Upon incorporating size, drive type, and fuel into the model, the adjusted R-squared value increased significantly, emphasizing the impact of these factors on vehicle prices. The second model substituted condition with drive type, resulting in a slightly improved adjusted R-squared value compared to the first trial. However, the inclusion of additional variables like paint color and vehicle condition in the second trial further enhanced the adjusted R-squared value. The machine learning model then selected a subset of variables based on the optimal combination identified in Linear Model 2, Trial 2. The model showcased a higher Multiple R-squared value without introducing unnecessary variables, highlighting the efficacy of this refined approach. Diagnostic plots were employed to assess the goodness-of-fit, normality of residuals, heteroscedasticity, and influential points, offering insights into the reliability of the developed models. Despite challenges like outliers and potential heteroscedasticity, the linear models provided valuable predictive capabilities, contributing to a comprehensive understanding of the intricate dynamics within the used car market.
